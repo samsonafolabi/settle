@@ -1,0 +1,16 @@
+{
+  "name": "settle",
+  "private": true,
+  "workspaces": [
+    "settle-quill",
+    "settle-sage",
+    "settle-sentry",
+    "settle-app"
+  ],
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "dotenv": "^17.4.2",
+    "ethers": "^6.16.0",
+    "groq-sdk": "^1.2.0"
+  }
+}
