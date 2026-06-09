@@ -38,12 +38,13 @@ Most AI finance products parse intent and execute. Settle adds verification laye
 
 | Layer | Role | Where |
 |---|---|---|
-| **Sage** | Parses natural language → resolves policy → builds action | Offchain |
-| **Policy Resolver** | Maps intent into deterministic policy boundaries | Offchain |
+| **Sage** | Parses natural language, resolves policy, and builds the action | Offchain |
 | **Sentry** | Verifies action is safe and consistent with intent | Offchain API |
 | **Accord** | Validates final pool against live onchain APY data | Onchain LLM |
-| **QuillProof** | Cryptographic attestation of the full intent-to-execution story | Offchain SDK |
 | **AttestationStore** | Permanent onchain receipt ledger | Onchain |
+| **QuillProof** | Audit trail — logs the full intent-to-execution story as an onchain receipt | Offchain → Onchain |
+
+> Policy resolution happens inside Sage before the action reaches Sentry or the vault. There is no separate policy service — the policy is baked into how Sage interprets intent and constrains the Accord prompts it builds.
 
 ---
 
@@ -93,10 +94,10 @@ Explorer: `https://shannon-explorer.somnia.network`
 
 | Contract | Address | Status |
 |---|---|---|
-| SettleVault | `0xe9DdC74458969D8E1031dAF9672ACcEc3E545767` | Verified |
-| AttestationStore | `0x325C3698e6a22A04126b2b8eB5fDC457b4053f3E` | Verified |
-| APYFeed | `0x706AC415F1e60485318890ec7c5eBa2D894fDB5b` | Verified |
-| MockUSDC | `0xD91a4eF9cf04b8dD4aBe40Da6CDbFc8F28b95D95` | Verified |
+| SettleVault | `0xe9DdC74458969D8E1031dAF9672ACcEc3E545767` | Deployed |
+| AttestationStore | `0x325C3698e6a22A04126b2b8eB5fDC457b4053f3E` | Deployed |
+| APYFeed | `0x706AC415F1e60485318890ec7c5eBa2D894fDB5b` | Deployed |
+| MockUSDC | `0xD91a4eF9cf04b8dD4aBe40Da6CDbFc8F28b95D95` | Deployed |
 | Accord Platform | `0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776` | External |
 
 ---
@@ -152,6 +153,16 @@ The receipt timeline includes pre-policy receipts from the build process — sho
 
 ---
 
+## Known Limitations
+
+**No timeout refund.** If Accord never calls back after a deposit (platform outage, STT exhaustion), USDC remains in escrow with no automated recovery path. A manual owner withdrawal and user-triggered timeout refund are planned post-hackathon.
+
+**QuillProof is an audit trail, not a vault gatekeeper.** The vault accepts deposits based on Accord's onchain validation alone. QuillProof signs and logs every deposit to AttestationStore for auditability but the signature is not verified onchain. Full cryptographic binding between the offchain pipeline and the vault is scoped to post-hackathon.
+
+**MockUSDC only.** The vault accepts only the deployed MockUSDC token. Real USDC integration is post-hackathon.
+
+---
+
 ## Running Locally
 
 **Prerequisites:** Node.js 18+, npm
@@ -203,10 +214,12 @@ GROQ_API_KEY=your_key
 ## What's Next
 
 - Vault-level policy enforcement — vault independently rejects a final pool that violates resolved policy
+- Timeout refund — user-triggered USDC recovery if Accord never finalises
 - Manual rebalance — user-triggered position moves
 - LLM reasoning in receipts — `chainOfThought: true` logged permanently
 - Reactive trigger — autonomous rebalancing when APY drops below threshold
 - Quill SDK — publish attestation pipeline as open-source NPM package
+- Real USDC — replace MockUSDC with mainnet token
 
 ---
 
