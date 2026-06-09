@@ -94,10 +94,10 @@ Explorer: `https://shannon-explorer.somnia.network`
 
 | Contract | Address | Status |
 |---|---|---|
-| SettleVault | `0xe9DdC74458969D8E1031dAF9672ACcEc3E545767` | Deployed |
-| AttestationStore | `0x325C3698e6a22A04126b2b8eB5fDC457b4053f3E` | Deployed |
-| APYFeed | `0x706AC415F1e60485318890ec7c5eBa2D894fDB5b` | Deployed |
-| MockUSDC | `0xD91a4eF9cf04b8dD4aBe40Da6CDbFc8F28b95D95` | Deployed |
+| SettleVault | `0xe9DdC74458969D8E1031dAF9672ACcEc3E545767` | Verified |
+| AttestationStore | `0x325C3698e6a22A04126b2b8eB5fDC457b4053f3E` | Verified |
+| APYFeed | `0x706AC415F1e60485318890ec7c5eBa2D894fDB5b` | Verified |
+| MockUSDC | `0xD91a4eF9cf04b8dD4aBe40Da6CDbFc8F28b95D95` | Verified |
 | Accord Platform | `0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776` | External |
 
 ---
