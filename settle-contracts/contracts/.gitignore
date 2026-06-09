@@ -1,0 +1,29 @@
+# env
+.env
+.env.*
+!.env.example
+
+# dependencies
+node_modules/
+lib/
+
+# foundry
+cache/
+out/
+broadcast/
+
+# generated verification/deploy helper files
+verify-*.json
+args*.json
+
+# nested git backup
+.git.backup/
+**/.git.backup/
+
+# logs
+*.log
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/

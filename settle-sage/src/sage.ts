@@ -1,13 +1,17 @@
 // settle-sage/src/sage.ts
-// Main entry point — processIntent()
-// Calls Gemini (with Groq fallback)
-// Validates response, builds SageOutput
-
 import "dotenv/config";
-import { SageInput, SageOutput, SageAction, LLMResponse } from "./types";
-import { fetchPools, bestPool } from "./apyfeed";
-import { callGemini } from "./gemini";
+import {
+  SageInput,
+  SageOutput,
+  SageAction,
+  LLMResponse,
+  DepositAction,
+  RebalanceAction,
+  Pool,
+} from "./types";
+import { fetchPools } from "./apyfeed";
 import { callGroq } from "./groq";
+import { callGemini } from "./gemini";
 import { buildCalldata } from "./calldata";
 
 const USDC_DECIMALS = 6;
@@ -18,7 +22,6 @@ function toRaw(amount: number): bigint {
 
 function buildAction(llm: LLMResponse, input: SageInput): SageAction {
   const { action } = llm;
-
   switch (action.type) {
     case "deposit": {
       if (!action.amount || !action.pool || action.poolIndex === undefined) {
@@ -33,18 +36,14 @@ function buildAction(llm: LLMResponse, input: SageInput): SageAction {
         slippageBps: action.slippageBps ?? 50,
       };
     }
-
     case "withdraw": {
-      if (!action.amount) {
-        throw new Error("Withdraw action missing amount");
-      }
+      if (!action.amount) throw new Error("Withdraw action missing amount");
       return {
         type: "withdraw",
         amount: action.amount,
         amountRaw: toRaw(action.amount),
       };
     }
-
     case "rebalance": {
       if (
         !action.fromPool ||
@@ -61,29 +60,63 @@ function buildAction(llm: LLMResponse, input: SageInput): SageAction {
         slippageBps: action.slippageBps ?? 50,
       };
     }
-
     default:
-      return {
-        type: "unknown",
-        rawIntent: input.intent,
-      };
+      return { type: "unknown", rawIntent: input.intent };
   }
 }
 
-function getAmountRaw(action: SageAction): bigint {
-  if (action.type === "deposit") return action.amountRaw;
-  if (action.type === "withdraw") return action.amountRaw;
-  return BigInt(0);
+// Build the safety prompt Accord uses for call 1
+// Tells Accord: is this deposit safe? Does pool match intent?
+function buildSafetyPrompt(
+  action: SageAction,
+  pools: Pool[],
+  intentText: string,
+): string {
+  if (action.type !== "deposit") return "";
+
+  const dep = action as DepositAction;
+  const pool = pools.find((p) => p.index === dep.poolIndex);
+  if (!pool) return "";
+
+  const poolList = pools
+    .map((p) => `${p.name} ${p.apy.toFixed(2)}% ${p.risk}`)
+    .join(", ");
+
+  return (
+    `Is depositing ${dep.amount} USDC into ${pool.name} at ${pool.apy.toFixed(2)}% APY ` +
+    `safe and appropriate for this user intent: "${intentText}"? ` +
+    `Available pools: ${poolList}. ` +
+    `Return EXECUTE if safe and appropriate. Return BLOCKED if there is a clear risk or intent mismatch.`
+  );
 }
 
-function getSlippageBps(action: SageAction): number {
-  if (action.type === "deposit") return action.slippageBps;
-  if (action.type === "rebalance") return action.slippageBps;
-  return 50;
+// Build the pool prompt Accord uses for call 2
+// Tells Accord: is this still the best pool? Override if not.
+function buildPoolPrompt(
+  action: SageAction,
+  pools: Pool[],
+  intentText: string,
+): string {
+  if (action.type !== "deposit") return "";
+
+  const dep = action as DepositAction;
+  const pool = pools.find((p) => p.index === dep.poolIndex);
+  if (!pool) return "";
+
+  const poolList = pools
+    .map((p) => `${p.name} ${p.apy.toFixed(2)}% ${p.risk}`)
+    .join(", ");
+
+  return (
+    `Given this intent: "${intentText}", which pool index is best? ` +
+    `0=${pools[0].name} ${pools[0].apy}% ${pools[0].risk}, ` +
+    `1=${pools[1].name} ${pools[1].apy}% ${pools[1].risk}, ` +
+    `2=${pools[2].name} ${pools[2].apy}% ${pools[2].risk}. ` +
+    `Return only the number 0, 1, or 2.`
+  );
 }
 
 async function callLLM(input: SageInput): Promise<LLMResponse> {
-  // Groq primary — fast and free
   try {
     return await callGroq(input);
   } catch (groqError) {
@@ -104,22 +137,55 @@ export async function processIntent(input: SageInput): Promise<SageOutput> {
     input.context.pools = await fetchPools();
   }
 
-  // Call LLM with fallback
   const llmResponse = await callLLM(input);
-
-  // Build structured action
   const action = buildAction(llmResponse, input);
-
-  // Build calldata from action
   const calldata = buildCalldata(action);
 
-  const amountRaw = getAmountRaw(action);
-  const slippageBps = getSlippageBps(action);
+  const amountRaw =
+    action.type === "deposit" || action.type === "withdraw"
+      ? action.amountRaw
+      : BigInt(0);
+
+  const slippageBps =
+    action.type === "deposit" || action.type === "rebalance"
+      ? action.slippageBps
+      : 50;
+
+  // poolId for vault (uint8) — use poolIndex from action
+  const selectedPoolId: number =
+    action.type === "deposit"
+      ? (action as DepositAction).poolIndex
+      : action.type === "rebalance"
+        ? (action as RebalanceAction).toPoolIndex
+        : 0;
+
+  const selectedPoolName: string =
+    action.type === "deposit"
+      ? (action as DepositAction).pool
+      : action.type === "rebalance"
+        ? (action as RebalanceAction).toPool
+        : "";
+
+  // Build Accord prompts — passed to vault as calldata
+  const safetyPrompt = buildSafetyPrompt(
+    action,
+    input.context.pools,
+    llmResponse.intentText,
+  );
+  const poolPrompt = buildPoolPrompt(
+    action,
+    input.context.pools,
+    llmResponse.intentText,
+  );
 
   return {
     amountRaw,
     intentText: llmResponse.intentText,
     slippageBps,
+    selectedPool: selectedPoolName,
+    selectedPoolId,
+    safetyPrompt,
+    poolPrompt,
     calldata,
     action,
     reasoning: llmResponse.reasoning,
