@@ -27,7 +27,7 @@ const LOG_CHUNK_SIZE = BigInt(950);
 // If you want older demo receipts indexed too, set NEXT_PUBLIC_VAULT_DEPLOY_BLOCK.
 const FALLBACK_LOOKBACK_BLOCKS = BigInt(25_000);
 
-function sameTimestamp(a: bigint, b: bigint, toleranceSeconds = BigInt(15)) {
+function sameTimestamp(a: bigint, b: bigint, toleranceSeconds = BigInt(120)) {
   return a >= b ? a - b <= toleranceSeconds : b - a <= toleranceSeconds;
 }
 
@@ -114,6 +114,8 @@ export function useReceiptTxHashes(
         return;
       }
 
+      const client = publicClient;
+
       try {
         const logs = await getChunkedFinalisedLogs();
 
@@ -123,7 +125,7 @@ export function useReceiptTxHashes(
           const cached = blockTimestampCache.get(blockNumber);
           if (cached !== undefined) return cached;
 
-          const block = await publicClient.getBlock({ blockNumber });
+          const block = await client.getBlock({ blockNumber });
           const timestamp = block.timestamp;
           blockTimestampCache.set(blockNumber, timestamp);
 
@@ -131,13 +133,16 @@ export function useReceiptTxHashes(
         }
 
         const exact = new Map<string, `0x${string}`>();
-        const loose = new Map<string, Array<{
-          amount: bigint;
-          poolId: number;
-          timestamp: bigint;
-          txHash: `0x${string}`;
-          used: boolean;
-        }>>();
+        const loose = new Map<
+          string,
+          Array<{
+            amount: bigint;
+            poolId: number;
+            timestamp: bigint;
+            txHash: `0x${string}`;
+            used: boolean;
+          }>
+        >();
 
         for (const log of logs) {
           const amount = log.args.amount;
@@ -206,7 +211,8 @@ export function useReceiptTxHashes(
           const looseHit = bucket?.find(
             (entry) =>
               !entry.used &&
-              sameTimestamp(entry.timestamp, receipt.timestamp),
+              (sameTimestamp(entry.timestamp, receipt.timestamp) ||
+                sameTimestamp(entry.timestamp, receipt.loggedAt)),
           );
 
           if (looseHit) {
@@ -217,7 +223,10 @@ export function useReceiptTxHashes(
 
         if (!cancelled) setTxHashByKey(next);
       } catch (error) {
-        console.warn("Failed to load receipt tx hashes from DepositFinalised events", error);
+        console.warn(
+          "Failed to load receipt tx hashes from DepositFinalised events",
+          error,
+        );
         if (!cancelled) setTxHashByKey(new Map());
       }
     }

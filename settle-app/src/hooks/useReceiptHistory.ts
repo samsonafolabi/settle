@@ -124,8 +124,9 @@ export function toReceiptCardData(
   };
 }
 
-export function useReceiptHistory() {
-  const { address } = useAccount();
+export function useReceiptHistory(overrideAddress?: `0x${string}`) {
+  const { address: _walletAddress } = useAccount();
+  const address = overrideAddress ?? _walletAddress;
 
   const deposits = useReadContract({
     address: contracts.attestationStore,

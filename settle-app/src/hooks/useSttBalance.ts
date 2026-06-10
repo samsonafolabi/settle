@@ -34,8 +34,10 @@ function formatStt(value: bigint): string {
   });
 }
 
-export function useSttBalance() {
-  const { address, isConnected } = useAccount();
+export function useSttBalance(overrideAddress?: `0x${string}`) {
+  const { address: _walletAddress, isConnected: _isConnected } = useAccount();
+  const address = overrideAddress ?? _walletAddress;
+  const isConnected = Boolean(address);
   const [state, setState] = useState<SttBalanceState>(EMPTY);
 
   useEffect(() => {

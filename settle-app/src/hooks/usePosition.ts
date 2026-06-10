@@ -23,19 +23,44 @@ const EMPTY_POSITION: VaultPosition = {
   active: false,
 };
 
+// Helper: safely coerce unknown → BigInt-acceptable type
+function safeBigInt(value: unknown): bigint {
+  if (value === null || value === undefined) return BigInt(0);
+  if (
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "bigint" ||
+    typeof value === "boolean"
+  ) {
+    return BigInt(value);
+  }
+  return BigInt(0);
+}
+
+function safeNumber(value: unknown): number {
+  if (typeof value === "number") return value;
+  if (typeof value === "string" || typeof value === "bigint")
+    return Number(value);
+  return 0;
+}
+
+function safeBoolean(value: unknown): boolean {
+  return Boolean(value);
+}
+
 export function normalizeVaultPosition(raw: unknown): VaultPosition {
   if (!raw) return EMPTY_POSITION;
 
   // viem may return public-struct getters as an array-like tuple.
   if (Array.isArray(raw)) {
     return {
-      balance: BigInt(raw[0] ?? 0),
-      depositTime: BigInt(raw[1] ?? 0),
-      accruedInterest: BigInt(raw[2] ?? 0),
-      lastClaimTime: BigInt(raw[3] ?? 0),
-      poolId: Number(raw[4] ?? 0),
-      poolAPY: BigInt(raw[5] ?? 0),
-      active: Boolean(raw[6]),
+      balance: safeBigInt(raw[0]),
+      depositTime: safeBigInt(raw[1]),
+      accruedInterest: safeBigInt(raw[2]),
+      lastClaimTime: safeBigInt(raw[3]),
+      poolId: safeNumber(raw[4]),
+      poolAPY: safeBigInt(raw[5]),
+      active: safeBoolean(raw[6]),
     };
   }
 
@@ -43,18 +68,19 @@ export function normalizeVaultPosition(raw: unknown): VaultPosition {
   const p = raw as Partial<Record<keyof VaultPosition, unknown>>;
 
   return {
-    balance: BigInt(p.balance ?? 0),
-    depositTime: BigInt(p.depositTime ?? 0),
-    accruedInterest: BigInt(p.accruedInterest ?? 0),
-    lastClaimTime: BigInt(p.lastClaimTime ?? 0),
-    poolId: Number(p.poolId ?? 0),
-    poolAPY: BigInt(p.poolAPY ?? 0),
-    active: Boolean(p.active),
+    balance: safeBigInt(p.balance),
+    depositTime: safeBigInt(p.depositTime),
+    accruedInterest: safeBigInt(p.accruedInterest),
+    lastClaimTime: safeBigInt(p.lastClaimTime),
+    poolId: safeNumber(p.poolId),
+    poolAPY: safeBigInt(p.poolAPY),
+    active: safeBoolean(p.active),
   };
 }
 
-export function usePosition() {
-  const { address } = useAccount();
+export function usePosition(overrideAddress?: `0x${string}`) {
+  const { address: _walletAddress } = useAccount();
+  const address = overrideAddress ?? _walletAddress;
 
   const query = useReadContract({
     address: contracts.vault,

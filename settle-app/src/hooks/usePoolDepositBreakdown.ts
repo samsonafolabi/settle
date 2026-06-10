@@ -69,8 +69,9 @@ function normalizeReceipt(raw: unknown): DepositReceipt | null {
   };
 }
 
-export function usePoolDepositBreakdown() {
-  const { address } = useAccount();
+export function usePoolDepositBreakdown(overrideAddress?: `0x${string}`) {
+  const { address: _walletAddress } = useAccount();
+  const address = overrideAddress ?? _walletAddress;
 
   const query = useReadContract({
     address: contracts.attestationStore,

@@ -1,10 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import { useAccount } from "wagmi";
 import { useReceiptHistory } from "@/hooks/useReceiptHistory";
 import type { ReceiptCardData } from "@/components/ReceiptCard";
 import { TxHashLink } from "@/components/TxHashLink";
+import { DemoCtx } from "@/lib/demoContext";
+
+function useViewAddress(): `0x${string}` | undefined {
+  const { address } = useAccount();
+  const demo = useContext(DemoCtx);
+  return address ?? (demo as `0x${string}` | undefined);
+}
 
 const C = {
   bg: "#0F0F0F",
@@ -52,11 +59,31 @@ function Pill({
   tone?: "green" | "yellow" | "red" | "blue" | "gray";
 }) {
   const map = {
-    green: { background: `${C.green}14`, color: C.green, border: `1px solid ${C.green}30` },
-    yellow: { background: `${C.yellow}14`, color: C.yellow, border: `1px solid ${C.yellow}30` },
-    red: { background: "#FF444414", color: C.red, border: "1px solid #FF444430" },
-    blue: { background: `${C.accent}18`, color: C.accent2, border: `1px solid ${C.accent}44` },
-    gray: { background: "#25252566", color: "#888", border: "1px solid #383838" },
+    green: {
+      background: `${C.green}14`,
+      color: C.green,
+      border: `1px solid ${C.green}30`,
+    },
+    yellow: {
+      background: `${C.yellow}14`,
+      color: C.yellow,
+      border: `1px solid ${C.yellow}30`,
+    },
+    red: {
+      background: "#FF444414",
+      color: C.red,
+      border: "1px solid #FF444430",
+    },
+    blue: {
+      background: `${C.accent}18`,
+      color: C.accent2,
+      border: `1px solid ${C.accent}44`,
+    },
+    gray: {
+      background: "#25252566",
+      color: "#888",
+      border: "1px solid #383838",
+    },
   } as const;
 
   return (
@@ -78,7 +105,8 @@ function Pill({
 }
 
 function Dot({ tone = "green" }: { tone?: "green" | "blue" | "yellow" }) {
-  const color = tone === "green" ? C.green : tone === "yellow" ? C.yellow : C.accent2;
+  const color =
+    tone === "green" ? C.green : tone === "yellow" ? C.yellow : C.accent2;
 
   return (
     <span
@@ -186,7 +214,9 @@ function ReceiptRow({
           marginBottom: 6,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 7, minWidth: 0 }}>
+        <div
+          style={{ display: "flex", alignItems: "center", gap: 7, minWidth: 0 }}
+        >
           <Dot tone={isRebalance ? "blue" : "green"} />
           <span
             style={{
@@ -222,10 +252,25 @@ function ReceiptRow({
           paddingLeft: 13,
         }}
       >
-        <span style={{ fontSize: 11, color: C.textMuted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <span
+          style={{
+            fontSize: 11,
+            color: C.textMuted,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
           {receipt.finalPoolName ?? "Vault"} · {receipt.apyLabel ?? "—"} APY
         </span>
-        <span style={{ fontFamily: MONO, fontSize: 10, color: C.textDim, whiteSpace: "nowrap" }}>
+        <span
+          style={{
+            fontFamily: MONO,
+            fontSize: 10,
+            color: C.textDim,
+            whiteSpace: "nowrap",
+          }}
+        >
           {receipt.timestampLabel ?? "—"}
         </span>
       </div>
@@ -272,12 +317,25 @@ function PipelineStep({
         }}
       >
         <Check />
-        {!last && <div style={{ width: 1, height: 24, background: C.border, margin: "3px auto" }} />}
+        {!last && (
+          <div
+            style={{
+              width: 1,
+              height: 24,
+              background: C.border,
+              margin: "3px auto",
+            }}
+          />
+        )}
       </div>
 
       <div style={{ paddingBottom: last ? 0 : 14 }}>
-        <div style={{ fontSize: 12, fontWeight: 500, color: C.text }}>{label}</div>
-        <div style={{ fontSize: 11, color: C.textMuted, marginTop: 1 }}>{detail}</div>
+        <div style={{ fontSize: 12, fontWeight: 500, color: C.text }}>
+          {label}
+        </div>
+        <div style={{ fontSize: 11, color: C.textMuted, marginTop: 1 }}>
+          {detail}
+        </div>
       </div>
     </div>
   );
@@ -286,22 +344,30 @@ function PipelineStep({
 function ReceiptDetail({ receipt }: { receipt: ReceiptCardData | null }) {
   if (!receipt) {
     return (
-      <div style={{ flex: 1, background: C.surface, borderLeft: `1px solid ${C.border}`, padding: 24 }}>
-        <div style={{ fontFamily: SANS, fontSize: 13, color: C.textMuted }}>Select a receipt.</div>
+      <div
+        style={{
+          flex: 1,
+          background: C.surface,
+          borderLeft: `1px solid ${C.border}`,
+          padding: 24,
+        }}
+      >
+        <div style={{ fontFamily: SANS, fontSize: 13, color: C.textMuted }}>
+          Select a receipt.
+        </div>
       </div>
     );
   }
 
   const isDeposit = receipt.kind === "deposit";
-  const sageDetail =
-    receipt.pipeline?.sage?.selectedPool
-      ? `${receipt.pipeline.sage.selectedPool} selected · ${receipt.pipeline.sage.confidence ?? "HIGH"} confidence`
-      : "Intent parsed into execution plan";
-  const sentryDetail =
-    receipt.pipeline?.sentry?.verdict
-      ? `${receipt.pipeline.sentry.verdict} · Risk ${receipt.pipeline.sentry.riskLevel ?? "NONE"}`
-      : "EXECUTE · Risk NONE";
-  const accordDetail = receipt.pipeline?.accord?.result ?? "Validated onchain · pool confirmed";
+  const sageDetail = receipt.pipeline?.sage?.selectedPool
+    ? `${receipt.pipeline.sage.selectedPool} selected · ${receipt.pipeline.sage.confidence ?? "HIGH"} confidence`
+    : "Intent parsed into execution plan";
+  const sentryDetail = receipt.pipeline?.sentry?.verdict
+    ? `${receipt.pipeline.sentry.verdict} · Risk ${receipt.pipeline.sentry.riskLevel ?? "NONE"}`
+    : "EXECUTE · Risk NONE";
+  const accordDetail =
+    receipt.pipeline?.accord?.result ?? "Validated onchain · pool confirmed";
   const vaultDetail = `${receipt.amountLabel} · ${receipt.finalPoolName ?? "Vault"} · ${receipt.apyLabel ?? "—"}`;
 
   return (
@@ -328,7 +394,14 @@ function ReceiptDetail({ receipt }: { receipt: ReceiptCardData | null }) {
           {isDeposit ? "Deposit Receipt" : "Rebalance Record"}
         </div>
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: 16,
+          }}
+        >
           <div>
             <div
               style={{
@@ -342,11 +415,20 @@ function ReceiptDetail({ receipt }: { receipt: ReceiptCardData | null }) {
               {isDeposit ? `+${receipt.amountLabel}` : receipt.amountLabel}
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 5 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                marginTop: 5,
+              }}
+            >
               <Dot />
               <span style={{ fontSize: 11, color: C.green }}>Confirmed</span>
               <span style={{ color: "#383838" }}>·</span>
-              <span style={{ fontFamily: MONO, fontSize: 11, color: C.textMuted }}>
+              <span
+                style={{ fontFamily: MONO, fontSize: 11, color: C.textMuted }}
+              >
                 {receipt.timestampLabel ?? "—"}
               </span>
             </div>
@@ -404,28 +486,47 @@ function ReceiptDetail({ receipt }: { receipt: ReceiptCardData | null }) {
           marginBottom: 16,
         }}
       >
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <div
+          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
+        >
           <div>
-            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 3 }}>Pool</div>
-            <div style={{ fontSize: 12, color: C.text, fontWeight: 500 }}>{receipt.finalPoolName ?? "—"}</div>
+            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 3 }}>
+              Pool
+            </div>
+            <div style={{ fontSize: 12, color: C.text, fontWeight: 500 }}>
+              {receipt.finalPoolName ?? "—"}
+            </div>
           </div>
 
           <div>
             <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 3 }}>
               {isDeposit ? "APY at deposit" : "APY gain"}
             </div>
-            <div style={{ fontSize: 12, color: C.green, fontWeight: 500 }}>{receipt.apyLabel ?? "—"}</div>
+            <div style={{ fontSize: 12, color: C.green, fontWeight: 500 }}>
+              {receipt.apyLabel ?? "—"}
+            </div>
           </div>
 
           <div>
-            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 3 }}>Finalisation tx</div>
-            <div style={{ fontFamily: MONO, fontSize: 11, color: C.accent2, fontWeight: 500 }}>
+            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 3 }}>
+              Finalisation tx
+            </div>
+            <div
+              style={{
+                fontFamily: MONO,
+                fontSize: 11,
+                color: C.accent2,
+                fontWeight: 500,
+              }}
+            >
               <TxHashLink txHash={receipt.txHash} />
             </div>
           </div>
 
           <div>
-            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 3 }}>Attestation</div>
+            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 3 }}>
+              Attestation
+            </div>
             <Pill tone="green">RECORDED</Pill>
           </div>
         </div>
@@ -475,7 +576,14 @@ function ReceiptDetail({ receipt }: { receipt: ReceiptCardData | null }) {
           justifyContent: "space-between",
         }}
       >
-        <span style={{ fontFamily: MONO, fontSize: 10, color: C.textDim, letterSpacing: "0.05em" }}>
+        <span
+          style={{
+            fontFamily: MONO,
+            fontSize: 10,
+            color: C.textDim,
+            letterSpacing: "0.05em",
+          }}
+        >
           SETTLE · SOMNIA
         </span>
         <span style={{ fontFamily: MONO, fontSize: 10, color: C.textDim }}>
@@ -487,8 +595,9 @@ function ReceiptDetail({ receipt }: { receipt: ReceiptCardData | null }) {
 }
 
 export function FullReceiptsPage() {
-  const { address } = useAccount();
-  const { receiptCards, deposits, count, isLoading, error } = useReceiptHistory();
+  const address = useViewAddress();
+  const { receiptCards, deposits, count, isLoading, error } =
+    useReceiptHistory(address);
   const [filter, setFilter] = useState<Filter>("all");
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -582,7 +691,15 @@ export function FullReceiptsPage() {
             {shortAddress(address)}
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: C.textMuted }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              fontSize: 10,
+              color: C.textMuted,
+            }}
+          >
             <Dot />
             <span>Somnia Testnet</span>
           </div>
@@ -600,29 +717,80 @@ export function FullReceiptsPage() {
         }}
       >
         <div style={{ display: "flex", gap: 6 }}>
-          <FilterButton active={filter === "all"} onClick={() => setFilter("all")}>All</FilterButton>
-          <FilterButton active={filter === "deposit"} onClick={() => setFilter("deposit")}>Deposits</FilterButton>
-          <FilterButton active={filter === "rebalance"} onClick={() => setFilter("rebalance")}>Rebalances</FilterButton>
+          <FilterButton
+            active={filter === "all"}
+            onClick={() => setFilter("all")}
+          >
+            All
+          </FilterButton>
+          <FilterButton
+            active={filter === "deposit"}
+            onClick={() => setFilter("deposit")}
+          >
+            Deposits
+          </FilterButton>
+          <FilterButton
+            active={filter === "rebalance"}
+            onClick={() => setFilter("rebalance")}
+          >
+            Rebalances
+          </FilterButton>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, auto)", gap: 16 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, auto)",
+            gap: 16,
+          }}
+        >
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 2 }}>Total deposited</div>
-            <div style={{ fontFamily: MONO, fontSize: 14, fontWeight: 600, color: C.green }}>
-              +${totalDeposited.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 2 }}>
+              Total deposited
+            </div>
+            <div
+              style={{
+                fontFamily: MONO,
+                fontSize: 14,
+                fontWeight: 600,
+                color: C.green,
+              }}
+            >
+              +$
+              {totalDeposited.toLocaleString(undefined, {
+                maximumFractionDigits: 2,
+              })}
             </div>
           </div>
 
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 2 }}>Rebalances</div>
-            <div style={{ fontFamily: MONO, fontSize: 14, fontWeight: 600, color: C.text }}>
+            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 2 }}>
+              Rebalances
+            </div>
+            <div
+              style={{
+                fontFamily: MONO,
+                fontSize: 14,
+                fontWeight: 600,
+                color: C.text,
+              }}
+            >
               0
             </div>
           </div>
 
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 2 }}>Records</div>
-            <div style={{ fontFamily: MONO, fontSize: 14, fontWeight: 600, color: C.text }}>
+            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 2 }}>
+              Records
+            </div>
+            <div
+              style={{
+                fontFamily: MONO,
+                fontSize: 14,
+                fontWeight: 600,
+                color: C.text,
+              }}
+            >
               {isLoading ? "…" : count}
             </div>
           </div>

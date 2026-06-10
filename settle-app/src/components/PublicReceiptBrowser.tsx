@@ -2,12 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { usePublicClient, useReadContract } from "wagmi";
-import {
-  isAddress,
-  parseAbiItem,
-  type Address,
-  type Hex,
-} from "viem";
+import { isAddress, parseAbiItem, type Address, type Hex } from "viem";
 import { contracts } from "@/lib/contracts";
 import { attestationStoreAbi } from "@/lib/abis/attestationStore";
 import {
@@ -118,7 +113,9 @@ function riskTone(risk?: PoolRisk): "green" | "yellow" | "red" | "blue" {
   return "blue";
 }
 
-function statusTone(status: ReceiptStatus): "green" | "yellow" | "red" | "blue" {
+function statusTone(
+  status: ReceiptStatus,
+): "green" | "yellow" | "red" | "blue" {
   if (status === "EXECUTED") return "green";
   if (status === "PRE-POLICY") return "blue";
   return "yellow";
@@ -140,7 +137,9 @@ function normalizeReceipt(raw: unknown): DepositReceipt | null {
 
   if (Array.isArray(raw)) {
     return {
-      wallet: String(raw[0] ?? "0x0000000000000000000000000000000000000000") as Address,
+      wallet: String(
+        raw[0] ?? "0x0000000000000000000000000000000000000000",
+      ) as Address,
       amount: toBigIntSafe(raw[1]),
       poolId: Number(raw[2] ?? 0),
       poolName: String(raw[3] ?? `Pool ${raw[2] ?? 0}`),
@@ -161,7 +160,9 @@ function normalizeReceipt(raw: unknown): DepositReceipt | null {
   };
 
   return {
-    wallet: String(receipt.wallet ?? "0x0000000000000000000000000000000000000000") as Address,
+    wallet: String(
+      receipt.wallet ?? "0x0000000000000000000000000000000000000000",
+    ) as Address,
     amount: toBigIntSafe(receipt.amount),
     poolId: Number(receipt.poolId ?? 0),
     poolName: String(receipt.poolName ?? `Pool ${receipt.poolId ?? 0}`),
@@ -241,11 +242,31 @@ function Pill({
   tone?: "green" | "yellow" | "red" | "blue" | "gray";
 }) {
   const map = {
-    green: { background: `${C.green}14`, color: C.green, border: `1px solid ${C.green}30` },
-    yellow: { background: `${C.yellow}14`, color: C.yellow, border: `1px solid ${C.yellow}30` },
-    red: { background: "#FF444414", color: C.red, border: "1px solid #FF444430" },
-    blue: { background: `${C.accent}18`, color: C.accent2, border: `1px solid ${C.accent}44` },
-    gray: { background: "#25252566", color: "#888", border: "1px solid #383838" },
+    green: {
+      background: `${C.green}14`,
+      color: C.green,
+      border: `1px solid ${C.green}30`,
+    },
+    yellow: {
+      background: `${C.yellow}14`,
+      color: C.yellow,
+      border: `1px solid ${C.yellow}30`,
+    },
+    red: {
+      background: "#FF444414",
+      color: C.red,
+      border: "1px solid #FF444430",
+    },
+    blue: {
+      background: `${C.accent}18`,
+      color: C.accent2,
+      border: `1px solid ${C.accent}44`,
+    },
+    gray: {
+      background: "#25252566",
+      color: "#888",
+      border: "1px solid #383838",
+    },
   } as const;
 
   return (
@@ -268,7 +289,8 @@ function Pill({
 }
 
 function Dot({ tone = "green" }: { tone?: "green" | "blue" | "yellow" }) {
-  const color = tone === "green" ? C.green : tone === "yellow" ? C.yellow : C.accent2;
+  const color =
+    tone === "green" ? C.green : tone === "yellow" ? C.yellow : C.accent2;
 
   return (
     <span
@@ -296,7 +318,9 @@ function Stat({
 }) {
   return (
     <div style={{ textAlign: "right" }}>
-      <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 2 }}>
+        {label}
+      </div>
       <div
         style={{
           fontFamily: MONO,
@@ -375,12 +399,21 @@ function TimelineNote() {
           </div>
 
           <div style={{ fontSize: 12, color: C.text, lineHeight: 1.5 }}>
-            Older receipts can include pre-policy behavior from before Settle’s deterministic policy resolver was enforced.
-            Newer receipts reflect the live policy layer: explicit pool requests are hard-locked, while strategy requests are resolved by policy.
+            Older receipts can include pre-policy behavior from before Settle’s
+            deterministic policy resolver was enforced. Newer receipts reflect
+            the live policy layer: explicit pool requests are hard-locked, while
+            strategy requests are resolved by policy.
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 6,
+            flexWrap: "wrap",
+            justifyContent: "flex-end",
+          }}
+        >
           <Pill tone="blue">PRE-POLICY</Pill>
           <Pill tone="green">EXECUTED</Pill>
           <Pill tone="yellow">WARNING</Pill>
@@ -431,8 +464,24 @@ function ReceiptRow({
           marginBottom: 6,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 7, minWidth: 0, flexWrap: "wrap" }}>
-          <Dot tone={status === "WARNING" ? "yellow" : status === "PRE-POLICY" ? "blue" : "green"} />
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 7,
+            minWidth: 0,
+            flexWrap: "wrap",
+          }}
+        >
+          <Dot
+            tone={
+              status === "WARNING"
+                ? "yellow"
+                : status === "PRE-POLICY"
+                  ? "blue"
+                  : "green"
+            }
+          />
           <span
             style={{
               fontSize: 13,
@@ -444,7 +493,9 @@ function ReceiptRow({
             Deposit receipt
           </span>
           <Pill tone={statusTone(status)}>{status}</Pill>
-          {mismatch && status !== "WARNING" && <Pill tone="yellow">MISMATCH</Pill>}
+          {mismatch && status !== "WARNING" && (
+            <Pill tone="yellow">MISMATCH</Pill>
+          )}
           {txHash && <Pill tone="green">TX</Pill>}
         </div>
 
@@ -478,7 +529,8 @@ function ReceiptRow({
             whiteSpace: "nowrap",
           }}
         >
-          {poolName} · {poolApyLabel(receipt.poolId, receipt.poolName)} APY · {risk} risk
+          {poolName} · {poolApyLabel(receipt.poolId, receipt.poolName)} APY ·{" "}
+          {risk} risk
         </span>
 
         <span
@@ -514,7 +566,13 @@ function ReceiptRow({
   );
 }
 
-function Detail({ receipt, txHash }: { receipt: DepositReceipt | null; txHash?: Hex }) {
+function Detail({
+  receipt,
+  txHash,
+}: {
+  receipt: DepositReceipt | null;
+  txHash?: Hex;
+}) {
   if (!receipt) {
     return (
       <div
@@ -537,7 +595,8 @@ function Detail({ receipt, txHash }: { receipt: DepositReceipt | null; txHash?: 
   const risk = poolRiskLabel(receipt.poolId, receipt.poolName);
   const apy = poolApyLabel(receipt.poolId, receipt.poolName);
   const txUrl = explorerTx(txHash);
-  const { status, mismatch, expectedPoolName, expectedReason } = receiptStatus(receipt);
+  const { status, mismatch, expectedPoolName, expectedReason } =
+    receiptStatus(receipt);
 
   return (
     <div
@@ -563,7 +622,14 @@ function Detail({ receipt, txHash }: { receipt: DepositReceipt | null; txHash?: 
           Onchain Receipt
         </div>
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: 16,
+          }}
+        >
           <div>
             <div
               style={{
@@ -577,19 +643,54 @@ function Detail({ receipt, txHash }: { receipt: DepositReceipt | null; txHash?: 
               +{formatUsdc(receipt.amount)} USDC
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 5 }}>
-              <Dot tone={status === "WARNING" ? "yellow" : status === "PRE-POLICY" ? "blue" : "green"} />
-              <span style={{ fontSize: 11, color: status === "WARNING" ? C.yellow : status === "PRE-POLICY" ? C.accent2 : C.green }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                marginTop: 5,
+              }}
+            >
+              <Dot
+                tone={
+                  status === "WARNING"
+                    ? "yellow"
+                    : status === "PRE-POLICY"
+                      ? "blue"
+                      : "green"
+                }
+              />
+              <span
+                style={{
+                  fontSize: 11,
+                  color:
+                    status === "WARNING"
+                      ? C.yellow
+                      : status === "PRE-POLICY"
+                        ? C.accent2
+                        : C.green,
+                }}
+              >
                 {status}
               </span>
               <span style={{ color: "#383838" }}>·</span>
-              <span style={{ fontFamily: MONO, fontSize: 11, color: C.textMuted }}>
-                {timeAgo(receipt.timestamp)} · {formatTimestamp(receipt.timestamp)}
+              <span
+                style={{ fontFamily: MONO, fontSize: 11, color: C.textMuted }}
+              >
+                {timeAgo(receipt.timestamp)} ·{" "}
+                {formatTimestamp(receipt.timestamp)}
               </span>
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 6,
+              flexWrap: "wrap",
+              justifyContent: "flex-end",
+            }}
+          >
             <Pill tone={statusTone(status)}>{status}</Pill>
             <Pill tone={riskTone(risk)}>{risk} RISK</Pill>
           </div>
@@ -608,7 +709,8 @@ function Detail({ receipt, txHash }: { receipt: DepositReceipt | null; txHash?: 
             lineHeight: 1.5,
           }}
         >
-          This receipt was recorded before the current policy resolver was enforced. It is shown as part of Settle’s public build timeline.
+          This receipt was recorded before the current policy resolver was
+          enforced. It is shown as part of Settle’s public build timeline.
         </div>
       )}
 
@@ -624,7 +726,8 @@ function Detail({ receipt, txHash }: { receipt: DepositReceipt | null; txHash?: 
             lineHeight: 1.5,
           }}
         >
-          Current-policy warning: the finalised pool appears to differ from the resolved user policy.
+          Current-policy warning: the finalised pool appears to differ from the
+          resolved user policy.
         </div>
       )}
 
@@ -667,7 +770,8 @@ function Detail({ receipt, txHash }: { receipt: DepositReceipt | null; txHash?: 
           <div style={{ display: "grid", gap: 6 }}>
             {expectedPoolName && (
               <div style={{ fontSize: 12, color: C.textMuted }}>
-                Expected pool: <span style={{ color: C.text }}>{expectedPoolName}</span>
+                Expected pool:{" "}
+                <span style={{ color: C.text }}>{expectedPoolName}</span>
               </div>
             )}
 
@@ -676,7 +780,9 @@ function Detail({ receipt, txHash }: { receipt: DepositReceipt | null; txHash?: 
             </div>
 
             {expectedReason && (
-              <div style={{ fontSize: 12, color: C.textMuted, lineHeight: 1.5 }}>
+              <div
+                style={{ fontSize: 12, color: C.textMuted, lineHeight: 1.5 }}
+              >
                 {expectedReason}
               </div>
             )}
@@ -692,42 +798,68 @@ function Detail({ receipt, txHash }: { receipt: DepositReceipt | null; txHash?: 
           marginBottom: 16,
         }}
       >
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <div
+          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
+        >
           <div>
-            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 3 }}>Wallet</div>
+            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 3 }}>
+              Wallet
+            </div>
             <a
               href={explorerAddress(receipt.wallet)}
               target="_blank"
               rel="noreferrer"
-              style={{ fontFamily: MONO, fontSize: 11, color: C.accent2, fontWeight: 500 }}
+              style={{
+                fontFamily: MONO,
+                fontSize: 11,
+                color: C.accent2,
+                fontWeight: 500,
+              }}
             >
               {shortAddress(receipt.wallet)} ↗
             </a>
           </div>
 
           <div>
-            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 3 }}>Pool</div>
-            <div style={{ fontSize: 12, color: C.text, fontWeight: 500 }}>{poolName}</div>
+            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 3 }}>
+              Pool
+            </div>
+            <div style={{ fontSize: 12, color: C.text, fontWeight: 500 }}>
+              {poolName}
+            </div>
           </div>
 
           <div>
-            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 3 }}>APY at receipt</div>
-            <div style={{ fontSize: 12, color: C.green, fontWeight: 500 }}>{apy}</div>
+            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 3 }}>
+              APY at receipt
+            </div>
+            <div style={{ fontSize: 12, color: C.green, fontWeight: 500 }}>
+              {apy}
+            </div>
           </div>
 
           <div>
-            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 3 }}>Risk</div>
+            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 3 }}>
+              Risk
+            </div>
             <Pill tone={riskTone(risk)}>{risk}</Pill>
           </div>
 
           <div>
-            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 3 }}>Vault tx</div>
+            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 3 }}>
+              Vault tx
+            </div>
             {txUrl ? (
               <a
                 href={txUrl}
                 target="_blank"
                 rel="noreferrer"
-                style={{ fontFamily: MONO, fontSize: 11, color: C.accent2, fontWeight: 500 }}
+                style={{
+                  fontFamily: MONO,
+                  fontSize: 11,
+                  color: C.accent2,
+                  fontWeight: 500,
+                }}
               >
                 {shortAddress(txHash)} ↗
               </a>
@@ -739,7 +871,9 @@ function Detail({ receipt, txHash }: { receipt: DepositReceipt | null; txHash?: 
           </div>
 
           <div>
-            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 3 }}>AttestationStore</div>
+            <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 3 }}>
+              AttestationStore
+            </div>
             <Pill tone="green">RECORDED</Pill>
           </div>
         </div>
@@ -785,8 +919,12 @@ function Detail({ receipt, txHash }: { receipt: DepositReceipt | null; txHash?: 
           </a>
 
           <div style={{ fontSize: 11, color: C.textMuted, lineHeight: 1.5 }}>
-            Receipt data is read from <span style={{ color: C.text }}>AttestationStore.getDeposits(wallet)</span>.
-            Vault transaction hashes are attached from event logs when available.
+            Receipt data is read from{" "}
+            <span style={{ color: C.text }}>
+              AttestationStore.getDeposits(wallet)
+            </span>
+            . Vault transaction hashes are attached from event logs when
+            available.
           </div>
         </div>
       </div>
@@ -800,7 +938,14 @@ function Detail({ receipt, txHash }: { receipt: DepositReceipt | null; txHash?: 
           justifyContent: "space-between",
         }}
       >
-        <span style={{ fontFamily: MONO, fontSize: 10, color: C.textDim, letterSpacing: "0.05em" }}>
+        <span
+          style={{
+            fontFamily: MONO,
+            fontSize: 10,
+            color: C.textDim,
+            letterSpacing: "0.05em",
+          }}
+        >
           SETTLE · SOMNIA
         </span>
         <span style={{ fontFamily: MONO, fontSize: 10, color: C.textDim }}>
@@ -851,7 +996,11 @@ export function PublicReceiptBrowser() {
       return next
         .filter((receipt) => {
           const status = receiptStatus(receipt);
-          return status.status === "PRE-POLICY" || status.status === "WARNING" || status.mismatch;
+          return (
+            status.status === "PRE-POLICY" ||
+            status.status === "WARNING" ||
+            status.mismatch
+          );
         })
         .sort((a, b) => Number(a.timestamp - b.timestamp));
     }
@@ -875,11 +1024,16 @@ export function PublicReceiptBrowser() {
   }, [rawReceipts]);
 
   const totalDeposited = useMemo(() => {
-    return rawReceipts.reduce((sum, receipt) => sum + Number(receipt.amount) / 1_000_000, 0);
+    return rawReceipts.reduce(
+      (sum, receipt) => sum + Number(receipt.amount) / 1_000_000,
+      0,
+    );
   }, [rawReceipts]);
 
   const selected = receipts[selectedIndex] ?? null;
-  const selectedTx = selected ? txIndex[receiptKey(selected)]?.txHash : undefined;
+  const selectedTx = selected
+    ? txIndex[receiptKey(selected)]?.txHash
+    : undefined;
 
   useEffect(() => {
     setSelectedIndex(0);
@@ -899,20 +1053,23 @@ export function PublicReceiptBrowser() {
       setTxIndexNote("");
 
       try {
-        const depositEvent = parseAbiItem(
-          "event Deposit(address indexed wallet,uint256 amount,string sagePool,string confirmedPool,uint256 apy,uint256 timestamp)",
+        const depositFinalisedEvent = parseAbiItem(
+          "event DepositFinalised(bytes32 indexed depositId,address indexed wallet,uint256 amount,uint8 poolId,uint256 apy)",
         );
 
         const fromBlockEnv = process.env.NEXT_PUBLIC_VAULT_DEPLOY_BLOCK;
+        const latestBlock = await publicClient.getBlockNumber();
+        const client = publicClient;
+
+        const FALLBACK_LOOKBACK = 25_000n;
         const fromBlock =
           fromBlockEnv && /^\d+$/.test(fromBlockEnv)
             ? BigInt(fromBlockEnv)
-            : 0n;
+            : latestBlock > FALLBACK_LOOKBACK
+              ? latestBlock - FALLBACK_LOOKBACK
+              : 0n;
 
-        const latestBlock = await publicClient.getBlockNumber();
-
-        const startBlock =
-          fromBlock > latestBlock ? latestBlock : fromBlock;
+        const startBlock = fromBlock > latestBlock ? latestBlock : fromBlock;
 
         const maxRange = 999n;
         const logs: any[] = [];
@@ -927,9 +1084,9 @@ export function PublicReceiptBrowser() {
               ? latestBlock
               : chunkStart + maxRange;
 
-          const chunkLogs = await publicClient.getLogs({
+          const chunkLogs = await client.getLogs({
             address: contracts.vault,
-            event: depositEvent,
+            event: depositFinalisedEvent,
             args: { wallet: targetWallet },
             fromBlock: chunkStart,
             toBlock: chunkEnd,
@@ -942,29 +1099,89 @@ export function PublicReceiptBrowser() {
 
         if (cancelled) return;
 
-        const index: Record<string, IndexedTx> = {};
+        // Fetch block timestamps for all unique blocks in parallel
+        const uniqueBlocks = [
+          ...new Set(logs.map((l: any) => l.blockNumber as bigint)),
+        ];
+        const blockTimestamps = new Map<bigint, bigint>();
+        await Promise.all(
+          uniqueBlocks.map(async (blockNumber) => {
+            try {
+              const block = await client.getBlock({ blockNumber });
+              blockTimestamps.set(blockNumber, block.timestamp);
+            } catch {
+              // ignore; receipt won't match
+            }
+          }),
+        );
+
+        if (cancelled) return;
+
+        // Build candidates keyed by wallet+amount+poolId
+        type Candidate = {
+          txHash: Hex;
+          blockNumber: bigint;
+          blockTimestamp: bigint;
+        };
+        const candidates = new Map<string, Candidate[]>();
 
         for (const log of logs as any[]) {
           const args = log.args ?? {};
-          const wallet = String(args.wallet ?? targetWallet) as Address;
+          const wallet = String(args.wallet ?? targetWallet).toLowerCase();
           const amount = toBigIntSafe(args.amount);
-          const poolName = String(args.confirmedPool ?? "");
-          const timestamp = toBigIntSafe(args.timestamp);
+          const poolId = Number(args.poolId ?? 0);
           const txHash = log.transactionHash as Hex | undefined;
+          const blockNumber = log.blockNumber as bigint | undefined;
 
-          if (!txHash || !poolName || amount === 0n || timestamp === 0n) continue;
+          if (!txHash || amount === 0n || blockNumber === undefined) continue;
 
-          index[
-            eventKey({
-              wallet,
-              amount,
-              poolName,
-              timestamp,
-            })
-          ] = {
-            txHash,
-            blockNumber: log.blockNumber,
-          };
+          const blockTimestamp = blockTimestamps.get(blockNumber) ?? 0n;
+          const looseKey = [wallet, amount.toString(), poolId].join(":");
+          const bucket = candidates.get(looseKey) ?? [];
+          bucket.push({ txHash, blockNumber, blockTimestamp });
+          candidates.set(looseKey, bucket);
+        }
+
+        const TOLERANCE = 120n;
+        const index: Record<string, IndexedTx> = {};
+
+        for (const receipt of rawReceipts) {
+          const pool = poolById(receipt.poolId) ?? poolByName(receipt.poolName);
+          const poolName = pool?.name ?? receipt.poolName;
+          const looseKey = [
+            receipt.wallet.toLowerCase(),
+            receipt.amount.toString(),
+            receipt.poolId,
+          ].join(":");
+          const bucket = candidates.get(looseKey);
+          if (!bucket) continue;
+
+          const match =
+            bucket.find((c) => {
+              const diffA =
+                c.blockTimestamp >= receipt.timestamp
+                  ? c.blockTimestamp - receipt.timestamp
+                  : receipt.timestamp - c.blockTimestamp;
+              const diffB =
+                c.blockTimestamp >= receipt.loggedAt
+                  ? c.blockTimestamp - receipt.loggedAt
+                  : receipt.loggedAt - c.blockTimestamp;
+              return diffA <= TOLERANCE || diffB <= TOLERANCE;
+            }) ?? bucket[0];
+
+          if (match) {
+            index[
+              eventKey({
+                wallet: receipt.wallet,
+                amount: receipt.amount,
+                poolName,
+                timestamp: receipt.timestamp,
+              })
+            ] = {
+              txHash: match.txHash,
+              blockNumber: match.blockNumber,
+            };
+          }
         }
 
         setTxIndex(index);
@@ -1083,12 +1300,21 @@ export function PublicReceiptBrowser() {
               color: C.textMuted,
             }}
           >
-            Browse agent-managed deposit receipts recorded in AttestationStore on Somnia.
-            The oldest-first view shows Settle’s evolution from pre-policy receipts to the current resolver-backed flow.
+            Browse agent-managed deposit receipts recorded in AttestationStore
+            on Somnia. The oldest-first view shows Settle’s evolution from
+            pre-policy receipts to the current resolver-backed flow.
           </p>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            flexWrap: "wrap",
+            justifyContent: "flex-end",
+          }}
+        >
           <Pill tone="green">PUBLIC READ</Pill>
           <Pill tone="blue">SOMNIA TESTNET</Pill>
           <a
@@ -1183,9 +1409,22 @@ export function PublicReceiptBrowser() {
           </button>
         </form>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, auto)", gap: 18 }}>
-          <Stat label="Deposited" value={`$${totalDeposited.toLocaleString(undefined, { maximumFractionDigits: 2 })}`} tone="green" />
-          <Stat label="Receipts" value={deposits.isLoading ? "…" : String(rawReceipts.length)} />
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, auto)",
+            gap: 18,
+          }}
+        >
+          <Stat
+            label="Deposited"
+            value={`$${totalDeposited.toLocaleString(undefined, { maximumFractionDigits: 2 })}`}
+            tone="green"
+          />
+          <Stat
+            label="Receipts"
+            value={deposits.isLoading ? "…" : String(rawReceipts.length)}
+          />
           <Stat label="Pre-policy" value={String(statusCounts["PRE-POLICY"])} />
           <Stat label="Warnings" value={String(statusCounts.WARNING)} />
         </div>
@@ -1201,10 +1440,27 @@ export function PublicReceiptBrowser() {
           flexShrink: 0,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 14,
+            flexWrap: "wrap",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              flexWrap: "wrap",
+            }}
+          >
             <Dot tone={txStatus === "error" ? "yellow" : "green"} />
-            <span style={{ fontFamily: MONO, fontSize: 11, color: C.textMuted }}>
+            <span
+              style={{ fontFamily: MONO, fontSize: 11, color: C.textMuted }}
+            >
               Viewing wallet:
             </span>
             <a
@@ -1218,7 +1474,12 @@ export function PublicReceiptBrowser() {
             {txIndexNote && (
               <>
                 <span style={{ color: C.textDim }}>·</span>
-                <span style={{ fontSize: 11, color: txStatus === "error" ? C.yellow : C.textMuted }}>
+                <span
+                  style={{
+                    fontSize: 11,
+                    color: txStatus === "error" ? C.yellow : C.textMuted,
+                  }}
+                >
                   {txIndexNote}
                 </span>
               </>
@@ -1226,13 +1487,22 @@ export function PublicReceiptBrowser() {
           </div>
 
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            <SortButton active={sortMode === "oldest"} onClick={() => setSortMode("oldest")}>
+            <SortButton
+              active={sortMode === "oldest"}
+              onClick={() => setSortMode("oldest")}
+            >
               Oldest first
             </SortButton>
-            <SortButton active={sortMode === "newest"} onClick={() => setSortMode("newest")}>
+            <SortButton
+              active={sortMode === "newest"}
+              onClick={() => setSortMode("newest")}
+            >
               Newest first
             </SortButton>
-            <SortButton active={sortMode === "mismatches"} onClick={() => setSortMode("mismatches")}>
+            <SortButton
+              active={sortMode === "mismatches"}
+              onClick={() => setSortMode("mismatches")}
+            >
               Mismatches
             </SortButton>
           </div>

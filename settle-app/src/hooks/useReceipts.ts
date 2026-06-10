@@ -2,8 +2,9 @@ import { useAccount, useReadContract } from "wagmi";
 import { contracts } from "@/lib/contracts";
 import { attestationStoreAbi } from "@/lib/abis/attestationStore";
 
-export function useReceipts() {
-  const { address } = useAccount();
+export function useReceipts(overrideAddress?: `0x${string}`) {
+  const { address: _walletAddress } = useAccount();
+  const address = overrideAddress ?? _walletAddress;
 
   const deposits = useReadContract({
     address: contracts.attestationStore,
