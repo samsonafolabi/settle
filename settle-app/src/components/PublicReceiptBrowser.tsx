@@ -1044,11 +1044,6 @@ export function PublicReceiptBrowser() {
 
     async function indexVaultDepositEvents() {
       if (!publicClient || !targetWallet || rawReceipts.length === 0) {
-        console.log("early return:", {
-          publicClient: !!publicClient,
-          targetWallet,
-          rawReceiptsLength: rawReceipts.length,
-        });
         setTxIndex({});
         setTxStatus("idle");
         return;
@@ -1103,16 +1098,6 @@ export function PublicReceiptBrowser() {
         }
 
         if (cancelled) return;
-
-        console.log("DepositFinalised logs found:", logs.length, logs);
-        console.log("rawReceipts:", rawReceipts.length, rawReceipts);
-        console.log("targetWallet:", targetWallet);
-        console.log(
-          "startBlock:",
-          startBlock.toString(),
-          "latestBlock:",
-          latestBlock.toString(),
-        );
 
         // Fetch block timestamps for all unique blocks in parallel
         const uniqueBlocks = [
