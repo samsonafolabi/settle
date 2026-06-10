@@ -1044,6 +1044,11 @@ export function PublicReceiptBrowser() {
 
     async function indexVaultDepositEvents() {
       if (!publicClient || !targetWallet || rawReceipts.length === 0) {
+        console.log("early return:", {
+          publicClient: !!publicClient,
+          targetWallet,
+          rawReceiptsLength: rawReceipts.length,
+        });
         setTxIndex({});
         setTxStatus("idle");
         return;
