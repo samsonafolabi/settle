@@ -77,7 +77,8 @@ function buildDeterministicResponse(input: SageInput): LLMResponse {
             amount,
           },
           intentText: `Withdraw ${amount} USDC from Settle.`,
-          reasoning: "The intent contains a withdraw instruction and a valid amount.",
+          reasoning:
+            "The intent contains a withdraw instruction and a valid amount.",
           confidence: "HIGH",
         }
       : {
@@ -98,7 +99,8 @@ function buildDeterministicResponse(input: SageInput): LLMResponse {
     return {
       action: { type: "unknown" },
       intentText: originalText,
-      reasoning: "The intent did not clearly map to a supported deposit action.",
+      reasoning:
+        "The intent did not clearly map to a supported deposit action.",
       confidence: "LOW",
     };
   }
@@ -118,13 +120,16 @@ function buildDeterministicResponse(input: SageInput): LLMResponse {
 
   if (isSafetyIntent(intent)) {
     selected = safestPool(pools);
-    reasoning = "The user asked for the safest/lowest-risk pool, so Sage selected the lowest-risk active pool.";
+    reasoning =
+      "The user asked for the safest/lowest-risk pool, so Sage selected the lowest-risk active pool.";
   } else if (isBalancedIntent(intent)) {
     selected = bestPoolForRisk(pools, "MED");
-    reasoning = "The user asked for a balanced/risk-adjusted pool, so Sage selected the best APY among LOW or MED risk pools.";
+    reasoning =
+      "The user asked for a balanced/risk-adjusted pool, so Sage selected the best APY among LOW or MED risk pools.";
   } else {
     selected = bestPool(pools);
-    reasoning = "The user asked for the best yield, so Sage selected the highest-APY active pool.";
+    reasoning =
+      "The user asked for the best yield, so Sage selected the highest-APY active pool.";
   }
 
   return {
@@ -220,8 +225,6 @@ function getActivePools(pools: Pool[]): Pool[] {
   // Keep this wrapper so the policy resolver has one safe place to evolve later.
   return pools.filter(Boolean);
 }
-
-
 
 function findExplicitPool(intentText: string, pools: Pool[]): Pool | undefined {
   const text = (intentText ?? "").toUpperCase();
@@ -388,15 +391,11 @@ function buildSafetyPrompt(
     .join(", ");
 
   const hardConstraint = isSafetyIntent(originalIntent)
-    ? (
-        `HARD USER CONSTRAINT: the user asked for the safest/low-risk option. ` +
-        `A MED or HIGH risk pool violates the user's intent even if it has higher APY. `
-      )
+    ? `HARD USER CONSTRAINT: the user asked for the safest/low-risk option. ` +
+      `A MED or HIGH risk pool violates the user's intent even if it has higher APY. `
     : isBalancedIntent(originalIntent)
-      ? (
-          `HARD USER CONSTRAINT: the user asked for a balanced/risk-adjusted option. ` +
-          `Do not approve a HIGH risk pool unless the user explicitly requested high yield. `
-        )
+      ? `HARD USER CONSTRAINT: the user asked for a balanced/risk-adjusted option. ` +
+        `Do not approve a HIGH risk pool unless the user explicitly requested high yield. `
       : "";
 
   return (
@@ -434,10 +433,7 @@ function buildPoolPrompt(
   const decision = resolvePoolDecision(intentText, selectedPool, pools);
 
   const poolList = getActivePools(pools)
-    .map(
-      (p) =>
-        `${p.index}=${p.name} ${p.apy.toFixed(2)}% ${p.risk} risk`,
-    )
+    .map((p) => `${p.index}=${p.name} ${p.apy.toFixed(2)}% ${p.risk} risk`)
     .join(", ");
 
   return (
@@ -521,17 +517,16 @@ export async function processIntent(input: SageInput): Promise<SageOutput> {
   const safetyPrompt = buildSafetyPrompt(
     action,
     input.context.pools,
+    llmResponse.intentText,
     originalIntent,
   );
   const poolPrompt = buildPoolPrompt(
     action,
     input.context.pools,
-    originalIntent,
+    llmResponse.intentText,
   );
 
-  const reasoning =
-    decision?.reason ??
-    llmResponse.reasoning;
+  const reasoning = decision?.reason ?? llmResponse.reasoning;
 
   return {
     amountRaw,
