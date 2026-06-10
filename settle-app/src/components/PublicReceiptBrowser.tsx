@@ -1099,6 +1099,16 @@ export function PublicReceiptBrowser() {
 
         if (cancelled) return;
 
+        console.log("DepositFinalised logs found:", logs.length, logs);
+        console.log("rawReceipts:", rawReceipts.length, rawReceipts);
+        console.log("targetWallet:", targetWallet);
+        console.log(
+          "startBlock:",
+          startBlock.toString(),
+          "latestBlock:",
+          latestBlock.toString(),
+        );
+
         // Fetch block timestamps for all unique blocks in parallel
         const uniqueBlocks = [
           ...new Set(logs.map((l: any) => l.blockNumber as bigint)),
