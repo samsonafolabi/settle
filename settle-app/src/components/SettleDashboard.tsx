@@ -657,7 +657,7 @@ function Sidebar({
               Settle
             </div>
             <div style={{ fontFamily: SANS, fontSize: 10, color: C.textMuted }}>
-              Intent-Based Yield on Somnia
+              Trust layer for agentic finance
             </div>
           </div>
         </div>
