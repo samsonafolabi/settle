@@ -1,3 +1,10 @@
+
+Proof explorer: https://settle-j1ykuklyd-afolabisamson20-1077s-projects.vercel.app/proof
+
+Demo link: https://settle-j1ykuklyd-afolabisamson20-1077s-projects.vercel.app/?demo=0xD6D46424Fd4De1Aa5222772B6d251E645159d8fe
+
+
+
 # Settle
 
 **The trust layer for agentic finance on Somnia.**
